@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Martir Offline — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* ========== S T Y L E  (SAMA PERSIS DENGAN ASLI) ========== */
+  :root {
+    --bg-deep:       #080a0f;
+    --bg-card:       #0d1017;
+    --bg-elevated:   #121620;
+    --surface:       #181e2a;
+    --border:        rgba(255,255,255,0.06);
+    --border-glow:   rgba(94,160,255,0.18);
+    --accent-blue:   #5ea0ff;
+    --accent-cyan:   #38e8d5;
+    --accent-amber:  #f5a623;
+    --accent-red:    #ff5f6d;
+    --accent-green:  #39e97b;
+    --text-primary:  #eef2ff;
+    --text-muted:    #5c6782;
+    --text-dim:      #3a4256;
+    --glow-blue:     0 0 24px rgba(94,160,255,0.25);
+    --glow-cyan:     0 0 24px rgba(56,232,213,0.20);
+    --radius:        16px;
+    --radius-sm:     10px;
+    --radius-xs:     7px;
+    --transition:    all 0.28s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 10% 0%, rgba(94,160,255,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 35% at 90% 100%, rgba(56,232,213,0.05) 0%, transparent 55%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; padding: 0 0 100px; }
+
+  /* STATUS BAR */
+  .status-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+  .status-bar .time { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons svg { width:14px; height:14px; opacity:.7; }
+
+  /* HEADER */
+  .header {
+    padding: 10px 20px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .brand-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, #1a2440 0%, #0f1928 100%);
+    border: 1px solid var(--border-glow);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--glow-blue), inset 0 1px 0 rgba(255,255,255,0.05);
+    position: relative; overflow: hidden;
+  }
+  .brand-icon::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(94,160,255,0.15), transparent);
+  }
+  .brand-icon svg { width: 20px; height: 20px; position: relative; z-index: 1; }
+  .brand-text { line-height: 1; }
+  .brand-name { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); }
+  .brand-sub {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.14em;
+    color: var(--accent-blue); text-transform: uppercase; margin-top: 2px;
+    font-family: 'DM Mono', monospace;
+  }
+  .header-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .header-action {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: var(--transition);
+    position: relative;
+  }
+  .header-action:active { transform: scale(0.92); background: var(--surface); }
+  .header-action svg { width: 17px; height: 17px; color: var(--text-muted); }
+  .notif-dot {
+    position: absolute; top: 7px; right: 7px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent-red);
+    box-shadow: 0 0 8px rgba(255,95,109,0.7);
+  }
+
+  /* SECTION TITLE */
+  .section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.16em;
+    color: var(--text-dim); text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+    padding: 0 20px 10px;
+  }
+
+  /* HERO CARD */
+  .hero-card {
+    margin: 0 16px 20px;
+    background: linear-gradient(145deg, #0f1928 0%, #0a1020 100%);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--glow-blue), 0 4px 32px rgba(0,0,0,0.5);
+    position: relative; overflow: hidden;
+  }
+  .hero-card::before {
+    content: '';
+    position: absolute; top: -30px; right: -30px;
+    width: 140px; height: 140px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(94,160,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+  .hero-label { font-size: 11px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.06em; font-family: 'DM Mono', monospace; }
+  .hero-status {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(57,233,123,0.1); border: 1px solid rgba(57,233,123,0.2);
+    border-radius: 20px; padding: 4px 10px;
+    font-size: 10px; font-weight: 600; color: var(--accent-green);
+    letter-spacing: 0.06em; font-family: 'DM Mono', monospace;
+  }
+  .pulse-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 8px rgba(57,233,123,0.8);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+  .hero-title { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+  .hero-title span { color: var(--accent-blue); }
+  .hero-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-family: 'DM Mono', monospace; }
+  .hero-metrics { display: flex; gap: 0; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .hero-metric { flex: 1; text-align: center; }
+  .hero-metric + .hero-metric { border-left: 1px solid var(--border); }
+  .hm-val { font-size: 18px; font-weight: 700; line-height: 1; color: var(--text-primary); }
+  .hm-val.blue { color: var(--accent-blue); }
+  .hm-val.cyan { color: var(--accent-cyan); }
+  .hm-val.amber { color: var(--accent-amber); }
+  .hm-lbl { font-size: 9px; color: var(--text-muted); margin-top: 4px; letter-spacing: 0.08em; font-family: 'DM Mono', monospace; text-transform: uppercase; }
+
+  /* QUICK STATS */
+  .stats-row {
+    display: flex; gap: 10px;
+    padding: 0 16px; margin-bottom: 20px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .stats-row::-webkit-scrollbar { display: none; }
+  .stat-pill {
+    flex-shrink: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 16px;
+    min-width: 90px; text-align: center;
+    cursor: pointer; transition: var(--transition);
+  }
+  .stat-pill:active { transform: scale(0.94); }
+  .sp-val { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+  .sp-val.blue  { color: var(--accent-blue); }
+  .sp-val.cyan  { color: var(--accent-cyan); }
+  .sp-val.amber { color: var(--accent-amber); }
+  .sp-val.green { color: var(--accent-green); }
+  .sp-val.red   { color: var(--accent-red); }
+  .sp-lbl { font-size: 9px; color: var(--text-muted); margin-top: 4px; letter-spacing: 0.08em; font-family: 'DM Mono', monospace; text-transform: uppercase; }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(8,10,15,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 10px 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 100;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; transition: var(--transition);
+    padding: 4px 16px; border-radius: 12px;
+    -webkit-user-select: none; user-select: none;
+  }
+  .nav-item:active { transform: scale(0.9); }
+  .nav-icon {
+    width: 22px; height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .nav-icon svg { width: 22px; height: 22px; color: var(--text-dim); transition: var(--transition); }
+  .nav-label { font-size: 9px; color: var(--text-dim); letter-spacing: 0.06em; font-family: 'DM Mono', monospace; transition: var(--transition); text-transform: uppercase; }
+  .nav-item.active .nav-icon svg { color: var(--accent-blue); }
+  .nav-item.active .nav-label { color: var(--accent-blue); }
+  .nav-item.active .nav-icon::after {
+    content: '';
+    position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--accent-blue);
+    box-shadow: 0 0 8px rgba(94,160,255,0.8);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim-1 { animation: fadeUp 0.5s ease 0.05s both; }
+  .anim-2 { animation: fadeUp 0.5s ease 0.15s both; }
+  .anim-3 { animation: fadeUp 0.5s ease 0.25s both; }
+  .anim-4 { animation: fadeUp 0.5s ease 0.35s both; }
+  .anim-5 { animation: fadeUp 0.5s ease 0.45s both; }
+
+  /* TOOL CARD */
+  .ascii-tool-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(94,160,255,0.2);
+    border-radius: var(--radius);
+    padding: 16px 14px 16px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .ascii-tool-card::before {
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(120deg, rgba(94,160,255,0.05) 0%, transparent 60%);
+    transition: var(--transition);
+  }
+  .ascii-tool-card:active { transform: scale(0.97); border-color: rgba(94,160,255,0.4); }
+  .ascii-tool-card:active::before { opacity: 2; }
+  .atc-left { display:flex; align-items:center; gap:14px; flex:1; }
+  .atc-icon {
+    width:44px; height:44px; border-radius:13px; flex-shrink:0;
+    background: rgba(94,160,255,0.12);
+    display:flex; align-items:center; justify-content:center;
+    border: 1px solid rgba(94,160,255,0.15);
+  }
+  .atc-icon svg { width:20px; height:20px; color:var(--accent-blue); }
+  .atc-name { font-size:14px; font-weight:700; color:var(--text-primary); letter-spacing:-0.01em; }
+  .atc-desc { font-size:10px; color:var(--text-muted); font-family:'DM Mono',monospace; margin-top:3px; line-height:1.4; }
+  .atc-arrow { color:var(--text-dim); flex-shrink:0; }
+
+  /* ASCII BOTTOM SHEET (styles remain same as before) */
+  .bs-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0);
+    z-index:200; pointer-events:none;
+    transition: background 0.35s ease;
+  }
+  .bs-overlay.active { background:rgba(0,0,0,0.65); pointer-events:all; }
+  .bottom-sheet {
+    position:fixed; bottom:0; left:0; right:0;
+    background: #0d1017;
+    border-top: 1px solid rgba(94,160,255,0.15);
+    border-radius: 24px 24px 0 0;
+    z-index:201;
+    max-height: 92vh;
+    display:flex; flex-direction:column;
+    transform: translateY(100%);
+    transition: transform 0.42s cubic-bezier(0.32,0.72,0,1);
+    box-shadow: 0 -8px 60px rgba(0,0,0,0.7);
+  }
+  .bottom-sheet.open { transform: translateY(0); }
+  .bs-handle-wrap { display:flex; justify-content:center; padding:12px 0 4px; }
+  .bs-handle { width:36px; height:4px; background:rgba(255,255,255,0.12); border-radius:10px; }
+  .bs-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink:0;
+  }
+  .bs-header-left { display:flex; align-items:center; gap:12px; }
+  .bs-icon {
+    width:38px; height:38px; border-radius:11px;
+    background: rgba(94,160,255,0.12); border:1px solid rgba(94,160,255,0.2);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .bs-icon svg { color:var(--accent-blue); }
+  .bs-title { font-size:15px; font-weight:800; letter-spacing:-0.02em; color:var(--text-primary); }
+  .bs-subtitle { font-size:10px; color:var(--text-muted); font-family:'DM Mono',monospace; margin-top:1px; }
+  .bs-close {
+    width:32px; height:32px; border-radius:9px;
+    background:var(--bg-elevated); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:var(--transition); color:var(--text-muted);
+  }
+  .bs-close:active { transform:scale(0.9); }
+  .bs-body { overflow-y:auto; flex:1; -webkit-overflow-scrolling:touch; }
+  .bs-body::-webkit-scrollbar { display:none; }
+  .bs-section { padding:18px 20px 0; }
+  .bs-section-label {
+    font-size:9px; font-weight:600; letter-spacing:0.18em;
+    color:var(--text-dim); text-transform:uppercase;
+    font-family:'DM Mono',monospace; margin-bottom:12px;
+  }
+  .img-picker {
+    border:1.5px dashed rgba(94,160,255,0.25);
+    border-radius:14px; overflow:hidden;
+    cursor:pointer; transition:var(--transition);
+    position:relative; background:rgba(94,160,255,0.03);
+    min-height:120px; display:flex; align-items:center; justify-content:center;
+  }
+  .img-picker:active { border-color:var(--accent-blue); background:rgba(94,160,255,0.07); }
+  .ip-placeholder { display:flex; flex-direction:column; align-items:center; gap:8px; padding:24px; }
+  .ip-icon { color:var(--accent-blue); opacity:0.6; }
+  .ip-text { font-size:13px; font-weight:600; color:var(--text-muted); }
+  .ip-sub { font-size:10px; color:var(--text-dim); font-family:'DM Mono',monospace; }
+  .ip-preview { width:100%; height:160px; object-fit:cover; display:block; }
+  .ip-change {
+    position:absolute; bottom:8px; right:8px;
+    background:rgba(13,16,23,0.85); border:1px solid var(--border);
+    border-radius:8px; padding:5px 10px;
+    font-size:10px; color:var(--accent-blue); font-family:'DM Mono',monospace;
+    display:flex; align-items:center; gap:4px; cursor:pointer;
+    backdrop-filter:blur(8px);
+  }
+  .model-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .model-chip {
+    background:var(--bg-elevated); border:1.5px solid var(--border);
+    border-radius:12px; padding:12px 14px;
+    cursor:pointer; transition:var(--transition);
+    -webkit-user-select:none; user-select:none;
+  }
+  .model-chip.active { border-color:var(--accent-blue); background:rgba(94,160,255,0.08); }
+  .model-chip:active { transform:scale(0.96); }
+  .mc-name { font-size:12px; font-weight:700; color:var(--text-primary); margin-bottom:5px; }
+  .mc-preview {
+    font-size:11px; font-family:'DM Mono',monospace;
+    color:var(--accent-blue); opacity:0.7; letter-spacing:0.05em;
+    overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+  }
+  .size-row { display:flex; gap:8px; margin-bottom:12px; }
+  .size-chip {
+    flex:1; background:var(--bg-elevated); border:1.5px solid var(--border);
+    border-radius:10px; padding:10px 4px;
+    text-align:center; cursor:pointer; transition:var(--transition);
+    font-size:11px; font-weight:700; color:var(--text-muted);
+  }
+  .size-chip span { display:block; font-size:8px; font-family:'DM Mono',monospace; color:var(--text-dim); margin-top:3px; font-weight:400; }
+  .size-chip.active { border-color:var(--accent-cyan); color:var(--accent-cyan); background:rgba(56,232,213,0.07); }
+  .slider-wrap { padding:4px 0 0; }
+  .slider-labels { display:flex; justify-content:space-between; margin-bottom:8px; }
+  .slider-labels span { font-size:9px; color:var(--text-dim); font-family:'DM Mono',monospace; }
+  .ascii-slider {
+    -webkit-appearance:none; width:100%; height:3px;
+    background: linear-gradient(90deg, var(--accent-cyan) 0%, var(--border) 0%);
+    border-radius:10px; outline:none;
+  }
+  .ascii-slider::-webkit-slider-thumb {
+    -webkit-appearance:none; width:18px; height:18px; border-radius:50%;
+    background:var(--accent-cyan); cursor:pointer;
+    box-shadow: 0 0 10px rgba(56,232,213,0.4);
+    border: 2px solid rgba(13,16,23,0.8);
+  }
+  .option-list { display:flex; flex-direction:column; gap:0; }
+  .option-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:13px 0; border-bottom:1px solid var(--border);
+  }
+  .opt-name { font-size:13px; font-weight:600; color:var(--text-primary); }
+  .opt-desc { font-size:10px; color:var(--text-muted); font-family:'DM Mono',monospace; margin-top:2px; }
+  .toggle-track {
+    width:42px; height:24px; border-radius:12px;
+    background:var(--bg-elevated); border:1px solid var(--border);
+    position:relative; cursor:pointer; transition:var(--transition);
+  }
+  .toggle-track.active { background:rgba(94,160,255,0.25); border-color:var(--accent-blue); }
+  .toggle-thumb {
+    width:18px; height:18px; border-radius:50%;
+    background:var(--text-dim); position:absolute;
+    top:2px; left:2px; transition:var(--transition);
+  }
+  .toggle-track.active .toggle-thumb { left:20px; background:var(--accent-blue); box-shadow:0 0 8px rgba(94,160,255,0.5); }
+  .export-grid { display:flex; gap:8px; }
+  .export-chip {
+    flex:1; background:var(--bg-elevated); border:1.5px solid var(--border);
+    border-radius:10px; padding:10px 6px;
+    text-align:center; cursor:pointer; transition:var(--transition);
+    font-size:11px; font-weight:700; color:var(--text-muted);
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+  }
+  .gen-btn {
+    width:100%; padding:16px;
+    background: linear-gradient(135deg, #1a3a6e 0%, #0f2247 100%);
+    border: 1px solid rgba(94,160,255,0.3);
+    border-radius:14px; color:var(--accent-blue);
+    font-family:'Syne',sans-serif; font-size:15px; font-weight:800;
+    cursor:pointer; transition:var(--transition);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .result-box {
+    background:var(--bg-deep); border:1px solid var(--border);
+    border-radius:12px; overflow:hidden;
+  }
+  .result-toolbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 12px; border-bottom:1px solid var(--border);
+    background:var(--bg-elevated);
+  }
+  .ascii-result {
+    font-family:'DM Mono',monospace; font-size:5px; line-height:1.15;
+    color:var(--accent-cyan); padding:12px;
+    white-space:pre; overflow-x:auto;
+    max-height:300px; overflow-y:auto;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar anim-1">
+    <span class="time">09:41</span>
+    <div class="status-icons">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <rect x="2" y="17" width="3" height="4" rx="1" fill="currentColor" stroke="none"/>
+        <rect x="7.5" y="13" width="3" height="8" rx="1" fill="currentColor" stroke="none"/>
+        <rect x="13" y="9" width="3" height="12" rx="1" fill="currentColor" stroke="none"/>
+        <rect x="18.5" y="5" width="3" height="16" rx="1" opacity="0.35" fill="currentColor" stroke="none"/>
+      </svg>
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M5 12.55a11 11 0 0 1 14.08 0" stroke="currentColor" stroke-width="2"/>
+        <path d="M1.42 9a16 16 0 0 1 21.16 0" stroke="currentColor" stroke-width="2" opacity="0.4"/>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0" stroke="currentColor" stroke-width="2"/>
+        <circle cx="12" cy="20" r="1.2" fill="currentColor"/>
+      </svg>
+      <svg viewBox="0 0 28 14" fill="none">
+        <rect x="1" y="1" width="22" height="12" rx="3" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+        <rect x="2.5" y="2.5" width="16" height="9" rx="2" fill="currentColor"/>
+        <path d="M24.5 4.5v5c1.1-.5 1.8-1.5 1.8-2.5S25.6 5 24.5 4.5z" fill="currentColor" opacity="0.6"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- HEADER (dengan tombol logout) -->
+  <div class="header anim-1">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#5ea0ff" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-name">Martir Offline</div>
+        <div class="brand-sub">Dashboard v2.1</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="header-action" style="position:relative">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span class="notif-dot"></span>
+      </div>
+      <!-- TOMBOL LOGOUT -->
+      <div class="header-action" id="logoutBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO CARD -->
+  <div class="hero-card anim-2">
+    <div class="hero-top">
+      <div class="hero-label">SYSTEM STATUS</div>
+      <div class="hero-status"><span class="pulse-dot"></span>ONLINE</div>
+    </div>
+    <div class="hero-title">System <span>Online</span></div>
+    <div class="hero-sub">Last sync: 2 min ago — martir.local</div>
+    <div class="hero-metrics">
+      <div class="hero-metric">
+        <div class="hm-val blue">99%</div>
+        <div class="hm-lbl">Uptime</div>
+      </div>
+      <div class="hero-metric">
+        <div class="hm-val cyan">12ms</div>
+        <div class="hm-lbl">Ping</div>
+      </div>
+      <div class="hero-metric">
+        <div class="hm-val amber">Stabil</div>
+        <div class="hm-lbl">Koneksi</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK STATS -->
+  <div class="section-label anim-3">Device Info</div>
+  <div class="stats-row anim-3">
+    <div class="stat-pill"><div class="sp-val blue">A14</div><div class="sp-lbl">Android</div></div>
+    <div class="stat-pill"><div class="sp-val green">ON</div><div class="sp-lbl">ADB</div></div>
+    <div class="stat-pill"><div class="sp-val cyan">USB</div><div class="sp-lbl">Mode</div></div>
+    <div class="stat-pill"><div class="sp-val amber">87%</div><div class="sp-lbl">Baterai</div></div>
+    <div class="stat-pill"><div class="sp-val red">32°</div><div class="sp-lbl">Suhu</div></div>
+  </div>
+
+  <div class="section-label anim-4" style="margin-top:4px;">Tools</div>
+  
+  <!-- ASCII Art Converter -->
+  <div style="padding:0 16px; margin-bottom:20px;" class="anim-4">
+    <div class="ascii-tool-card" id="asciiToolBtn">
+      <div class="atc-left">
+        <div class="atc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <path d="M7 8h2l1 3 1-3h2"/>
+            <path d="M7 13h4"/>
+            <path d="M14 13h3"/>
+            <path d="M14 16h3"/>
+            <path d="M7 16h4"/>
+          </svg>
+        </div>
+        <div class="atc-text">
+          <div class="atc-name">ASCII Art Converter</div>
+          <div class="atc-desc">Ubah gambar menjadi ASCII art</div>
+        </div>
+      </div>
+      <div class="atc-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kalkulator Pro -->
+  <div style="padding:0 16px; margin-bottom:20px;" class="anim-5">
+    <div class="ascii-tool-card" id="calculatorToolBtn">
+      <div class="atc-left">
+        <div class="atc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
+            <line x1="8" y1="6" x2="16" y2="6"/>
+            <line x1="16" y1="14" x2="16" y2="18"/>
+            <line x1="12" y1="14" x2="12" y2="18"/>
+            <line x1="8" y1="14" x2="8" y2="18"/>
+            <circle cx="16" cy="10" r="1"/>
+            <circle cx="12" cy="10" r="1"/>
+            <circle cx="8" cy="10" r="1"/>
+          </svg>
+        </div>
+        <div class="atc-text">
+          <div class="atc-name">Kalkulator Pro</div>
+          <div class="atc-desc">Kalkulator dengan maksimal 15 digit</div>
+        </div>
+      </div>
+      <div class="atc-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+  
+  <!-- QR Code Generator -->
+<div style="padding:0 16px; margin-bottom:20px;" class="anim-4">
+  <div class="ascii-tool-card" id="qrcodeToolBtn">
+    <div class="atc-left">
+      <div class="atc-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <line x1="7" y1="7" x2="7" y2="7" stroke-width="2.5"/>
+          <line x1="17" y1="7" x2="17" y2="7" stroke-width="2.5"/>
+          <line x1="7" y1="17" x2="7" y2="17" stroke-width="2.5"/>
+          <line x1="17" y1="17" x2="17" y2="17" stroke-width="2.5"/>
+          <rect x="9" y="9" width="6" height="6"/>
+        </svg>
+      </div>
+      <div class="atc-text">
+        <div class="atc-name">QR Code Generator</div>
+        <div class="atc-desc">Email, Teks, WA, Telepon, Lokasi</div>
+      </div>
+    </div>
+    <div class="atc-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- Password Generator -->
+<div style="padding:0 16px; margin-bottom:20px;" class="anim-5">
+  <div class="ascii-tool-card" id="passwordToolBtn">
+    <div class="atc-left">
+      <div class="atc-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          <circle cx="12" cy="16" r="1.5"/>
+        </svg>
+      </div>
+      <div class="atc-text">
+        <div class="atc-name">Password Generator Pro</div>
+        <div class="atc-desc">Generate 20-50 password + status keamanan</div>
+      </div>
+    </div>
+    <div class="atc-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+</div><!-- /.app -->
+
+<!-- ASCII ART BOTTOM SHEET -->
+<div class="bs-overlay" id="bsOverlay"></div>
+<div class="bottom-sheet" id="bottomSheet">
+  <div class="bs-handle-wrap"><div class="bs-handle"></div></div>
+  <div class="bs-header">
+    <div class="bs-header-left">
+      <div class="bs-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18">
+          <rect x="3" y="3" width="18" height="18" rx="3"/>
+          <path d="M7 8h2l1 3 1-3h2"/><path d="M7 13h4"/><path d="M14 13h3"/><path d="M14 16h3"/><path d="M7 16h4"/>
+        </svg>
+      </div>
+      <div>
+        <div class="bs-title">ASCII Art Converter</div>
+        <div class="bs-subtitle">Konfigurasi & Generate</div>
+      </div>
+    </div>
+    <button class="bs-close" id="bsClose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <div class="bs-body">
+    <div class="bs-section">
+      <div class="bs-section-label">1 — Pilih Gambar</div>
+      <div class="img-picker" id="imgPicker">
+        <input type="file" id="fileInput" accept="image/*" style="display:none">
+        <div class="ip-placeholder" id="ipPlaceholder">
+          <div class="ip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+          <div class="ip-text">Tap untuk pilih gambar</div>
+          <div class="ip-sub">JPG, PNG, WEBP — maks 10MB</div>
+        </div>
+        <img id="previewImg" class="ip-preview" style="display:none" alt="preview">
+        <div class="ip-change" id="ipChange" style="display:none">Ganti Gambar</div>
+      </div>
+    </div>
+    <div class="bs-section">
+      <div class="bs-section-label">2 — Model ASCII</div>
+      <div class="model-grid" id="modelGrid">
+        <div class="model-chip active" data-model="standard"><div class="mc-name">Standard</div><div class="mc-preview">@#S%?*+;:,.</div></div>
+        <div class="model-chip" data-model="block"><div class="mc-name">Block</div><div class="mc-preview">█▓▒░ </div></div>
+        <div class="model-chip" data-model="minimal"><div class="mc-name">Minimal</div><div class="mc-preview">. : | ▪ █</div></div>
+        <div class="model-chip" data-model="binary"><div class="mc-name">Binary</div><div class="mc-preview">01010101</div></div>
+        <div class="model-chip" data-model="braille"><div class="mc-name">Braille</div><div class="mc-preview">⣿⣶⣤⣀⠀</div></div>
+        <div class="model-chip" data-model="emoji"><div class="mc-name">Emoji</div><div class="mc-preview">⬛🟫🟨⬜</div></div>
+      </div>
+    </div>
+    <div class="bs-section">
+      <div class="bs-section-label">3 — Ukuran Output</div>
+      <div class="size-row">
+        <div class="size-chip active" data-size="40">Kecil<span>40 col</span></div>
+        <div class="size-chip" data-size="80">Sedang<span>80 col</span></div>
+        <div class="size-chip" data-size="120">Besar<span>120 col</span></div>
+        <div class="size-chip" data-size="160">XL<span>160 col</span></div>
+      </div>
+      <div class="slider-wrap">
+        <div class="slider-labels"><span>20</span><span id="sliderVal">40</span><span>200</span></div>
+        <input type="range" id="sizeSlider" min="20" max="200" value="40" class="ascii-slider">
+      </div>
+    </div>
+    <div class="bs-section">
+      <div class="bs-section-label">4 — Opsi Tambahan</div>
+      <div class="option-list">
+        <div class="option-row"><div class="opt-info"><div class="opt-name">Warna Karakter</div><div class="opt-desc">Gunakan warna terminal ANSI</div></div><div class="toggle-wrap" id="toggleColor"><div class="toggle-track active"><div class="toggle-thumb"></div></div></div></div>
+        <div class="option-row"><div class="opt-info"><div class="opt-name">Invert</div><div class="opt-desc">Balik gelap & terang</div></div><div class="toggle-wrap" id="toggleInvert"><div class="toggle-track"><div class="toggle-thumb"></div></div></div></div>
+        <div class="option-row"><div class="opt-info"><div class="opt-name">Rasio Karakter</div><div class="opt-desc">Sesuaikan tinggi/lebar font</div></div><div class="toggle-wrap" id="toggleRatio"><div class="toggle-track active"><div class="toggle-thumb"></div></div></div></div>
+        <div class="option-row"><div class="opt-info"><div class="opt-name">Background Gelap</div><div class="opt-desc">Output di atas bg hitam</div></div><div class="toggle-wrap" id="toggleBg"><div class="toggle-track active"><div class="toggle-thumb"></div></div></div></div>
+      </div>
+    </div>
+    <div class="bs-section">
+      <div class="bs-section-label">5 — Format Export</div>
+      <div class="export-grid" id="exportGrid">
+        <div class="export-chip active" data-fmt="txt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>TXT</div>
+        <div class="export-chip" data-fmt="png"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>PNG</div>
+        <div class="export-chip" data-fmt="html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>HTML</div>
+        <div class="export-chip" data-fmt="copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</div>
+      </div>
+    </div>
+    <div class="bs-section" style="padding-bottom:8px;">
+      <button class="gen-btn" id="genBtn"><span id="genBtnText">Generate ASCII Art</span><div class="gen-spinner" id="genSpinner" style="display:none"></div></button>
+    </div>
+    <div class="bs-section" id="resultSection" style="display:none">
+      <div class="bs-section-label">Hasil</div>
+      <div class="result-box">
+        <div class="result-toolbar"><div class="result-info" id="resultInfo">—</div><div class="result-actions"><button class="r-btn" id="copyBtn">Copy</button><button class="r-btn" id="dlBtn">Download</button></div></div>
+        <pre class="ascii-result" id="asciiResult"></pre>
+      </div>
+    </div>
+    <div style="height:20px"></div>
+  </div>
+  <canvas id="asciiCanvas" style="display:none"></canvas>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item active"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><span class="nav-label">Home</span></div>
+  <div class="nav-item"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><span class="nav-label">Scan</span></div>
+  <div class="nav-item"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><span class="nav-label">Monitor</span></div>
+  <div class="nav-item"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></div><span class="nav-label">Profile</span></div>
+</nav>
+
+<script>
+  // ========== AUTHENTICATION GUARD ==========
+  const currentUser = localStorage.getItem('app_current_user');
+  if (!currentUser) {
+    window.location.href = 'login.html';
+  }
+
+  // ========== LOGOUT FUNCTION ==========
+  function logout() {
+    localStorage.removeItem('app_current_user');
+    window.location.href = 'login.html';
+  }
+
+  // ========== SEMUA SCRIPT ASLI (JAM, PING, DLL) TETAP ADA ==========
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    document.querySelector('.time').textContent = h + ':' + m;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  const startTime = Date.now();
+  function updateUptime() {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const h = Math.floor(elapsed / 3600);
+    const m = Math.floor((elapsed % 3600) / 60);
+    const s = elapsed % 60;
+    let label = h > 0 ? h+'j '+m+'m' : (m > 0 ? m+'m '+s+'s' : s+'s');
+    const el = document.querySelector('.hm-val.blue');
+    if (el) el.textContent = label;
+  }
+  updateUptime();
+  setInterval(updateUptime, 1000);
+
+  let basePing = 12;
+  function updatePing() {
+    const jitter = Math.floor(Math.random() * 10) - 4;
+    basePing = Math.max(5, Math.min(60, basePing + jitter));
+    const el = document.querySelector('.hm-val.cyan');
+    if (el) {
+      el.textContent = basePing + 'ms';
+      el.classList.remove('cyan', 'amber', 'red');
+      if (basePing <= 20) el.classList.add('cyan');
+      else if (basePing <= 40) el.classList.add('amber');
+      else el.classList.add('red');
+    }
+  }
+  updatePing();
+  setInterval(updatePing, 3000);
+
+  function updateKoneksi() {
+    const el = document.querySelector('.hm-val.amber');
+    if (!el) return;
+    if (basePing <= 20) { el.textContent = 'Stabil'; el.style.color = 'var(--accent-cyan)'; }
+    else if (basePing <= 40) { el.textContent = 'Lambat'; el.style.color = 'var(--accent-amber)'; }
+    else { el.textContent = 'Lemah'; el.style.color = 'var(--accent-red)'; }
+  }
+  setInterval(updateKoneksi, 3000);
+
+  let syncSeconds = 0;
+  function updateLastSync() {
+    syncSeconds++;
+    const el = document.querySelector('.hero-sub');
+    if (!el) return;
+    let label = syncSeconds < 60 ? syncSeconds+' detik lalu' : (syncSeconds < 3600 ? Math.floor(syncSeconds/60)+' menit lalu' : Math.floor(syncSeconds/3600)+' jam lalu');
+    el.textContent = 'Last sync: ' + label + ' — martir.local';
+  }
+  setInterval(updateLastSync, 1000);
+
+  let battery = 87;
+  function updateBattery() {
+    if (Math.random() < 0.003) battery = Math.max(1, battery - 1);
+    const pills = document.querySelectorAll('.stat-pill');
+    const el = pills[3]?.querySelector('.sp-val');
+    if (el) {
+      el.textContent = battery + '%';
+      el.className = 'sp-val';
+      if (battery > 50) el.classList.add('green');
+      else if (battery > 20) el.classList.add('amber');
+      else el.classList.add('red');
+    }
+  }
+  updateBattery();
+  setInterval(updateBattery, 5000);
+
+  let suhu = 32;
+  function updateSuhu() {
+    const delta = (Math.random() - 0.48) * 1.5;
+    suhu = Math.max(28, Math.min(55, suhu + delta));
+    const pills = document.querySelectorAll('.stat-pill');
+    const el = pills[4]?.querySelector('.sp-val');
+    if (el) {
+      el.textContent = Math.round(suhu) + '°';
+      el.className = 'sp-val';
+      if (suhu < 38) el.classList.add('cyan');
+      else if (suhu < 45) el.classList.add('amber');
+      else el.classList.add('red');
+    }
+  }
+  updateSuhu();
+  setInterval(updateSuhu, 4000);
+
+  const notifBtn = document.querySelector('.header-action:first-child');
+  if (notifBtn) {
+    notifBtn.addEventListener('click', function() {
+      const dot = this.querySelector('.notif-dot');
+      if (dot) dot.style.display = 'none';
+    });
+  }
+
+  function setActive(el) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+  }
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() { setActive(this); });
+  });
+
+  // ========== TOMBOL LOGOUT ==========
+  const logoutButton = document.getElementById('logoutBtn');
+  if (logoutButton) {
+    logoutButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      logout();
+    });
+  }
+
+  // ========== LOADER TOOL (ASCII, Kalkulator, dll) ==========
+  document.addEventListener('DOMContentLoaded', function() {
+    const asciiToolBtn = document.getElementById('asciiToolBtn');
+    if (asciiToolBtn) {
+      asciiToolBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (typeof GambarAsci !== 'undefined') {
+          GambarAsci.open();
+        } else {
+          alert('Memuat converter...');
+          const script = document.createElement('script');
+          script.src = 'gambarasci.js';
+          script.onload = function() { GambarAsci.open(); };
+          document.head.appendChild(script);
+        }
+      });
+    }
+
+    const calculatorToolBtn = document.getElementById('calculatorToolBtn');
+    if (calculatorToolBtn) {
+      calculatorToolBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (typeof KalkulatorPro !== 'undefined') {
+          KalkulatorPro.open();
+        } else {
+          const script = document.createElement('script');
+          script.src = 'kalkulator.js';
+          script.onload = function() { KalkulatorPro.open(); };
+          document.head.appendChild(script);
+        }
+      });
+    }
+  
+    const qrcodeToolBtn = document.getElementById('qrcodeToolBtn');
+    if (qrcodeToolBtn) {
+      qrcodeToolBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (typeof QRCodeGenerator !== 'undefined') {
+          QRCodeGenerator.open();
+        } else {
+          const script = document.createElement('script');
+          script.src = 'qrcode.js';
+          script.onload = function() { QRCodeGenerator.open(); };
+          document.head.appendChild(script);
+        }
+      });
+    }
+  
+    const passwordToolBtn = document.getElementById('passwordToolBtn');
+    if (passwordToolBtn) {
+      passwordToolBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (typeof PasswordGenerator !== 'undefined') {
+          PasswordGenerator.open();
+        } else {
+          const script = document.createElement('script');
+          script.src = 'pw.js';
+          script.onload = function() { PasswordGenerator.open(); };
+          document.head.appendChild(script);
+        }
+      });
+    }
+  });
+</script>
+<script src="gambarasci.js"></script>
+<script src="kalkulator.js"></script>
+</body>
+</html>
